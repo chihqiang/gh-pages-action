@@ -1,0 +1,39 @@
+name: 'Deploy Static Site to Github Branch'
+description: 'Publish a directory to a target branch (e.g., gh-pages), with optional CNAME support'
+author: 'zhiqiang <zhiqiang2033@gmail.com>'
+
+inputs:
+  token:
+    description: Token for HTTPS authentication
+    required: true
+  publish_dir:
+    description: 'The local directory to publish (e.g., dist)'
+    required: true
+  target_branch:
+    description: 'The branch to publish to (default: gh-pages)'
+    required: false
+    default: 'gh-pages'
+  cname:
+    description: 'Custom domain (e.g., example.com). If set, a CNAME file will be created.'
+    required: false
+  repository:
+    description: 'The repository to push to (e.g., user/repo). Defaults to GITHUB_REPOSITORY.'
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Run publish script
+      run: bash ${GITHUB_ACTION_PATH}/entry.sh
+      shell: bash
+      env:
+        PUBLISH_DIR: ${{ inputs.publish_dir }}
+        TARGET_BRANCH: ${{ inputs.target_branch }}
+        COMMIT_MESSAGE: ${{ inputs.commit_message }}
+        CNAME: ${{ inputs.cname }}
+        REPOSITORY: ${{ inputs.repository }}
+        GITHUB_TOKEN: ${{ inputs.token }}
+
+branding:
+  icon: 'upload-cloud'
+  color: 'blue'
