@@ -20,7 +20,10 @@ GITHUB_TOKEN="${GITHUB_TOKEN:?GITHUB_TOKEN is required}"
 
 # 可选参数及默认值
 TARGET_BRANCH="${TARGET_BRANCH:-gh-pages}"
-COMMIT_MESSAGE="${COMMIT_MESSAGE:-"deploy commit: $(git rev-parse HEAD)"}"
+
+
+CURRENT_HASH=$(git rev-parse HEAD 2>/dev/null || date +'%Y%m%d%H%M%S%3N')
+COMMIT_MESSAGE="${COMMIT_MESSAGE:-"deploy commit: ${CURRENT_HASH}"}"
 CNAME="${CNAME:-}"
 
 # 支持外部覆盖 REPOSITORY，否则用 GITHUB_REPOSITORY
