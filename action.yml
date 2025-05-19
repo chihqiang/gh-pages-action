@@ -13,6 +13,9 @@ inputs:
     description: 'The branch to publish to (default: gh-pages)'
     required: false
     default: 'gh-pages'
+  commit_message:
+    description: 'The commit message to use'
+    required: false
   cname:
     description: 'Custom domain (e.g., example.com). If set, a CNAME file will be created.'
     required: false
