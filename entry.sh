@@ -1,8 +1,7 @@
 #!/bin/bash
-# 发布指定目录到目标分支，支持自定义CNAME和带颜色日志输出
 set -euo pipefail
 
-# === 日志函数 ===
+# === Logging functions ===
 color_echo() {
   local color_code=$1; shift
   echo -e "\033[${color_code}m[$(date +'%H:%M:%S')] $@\033[0m"
@@ -14,57 +13,56 @@ error()   { color_echo "1;31" "❌ $@"; }
 step()    { color_echo "1;36" "🚀 $@"; }
 divider() { echo -e "\033[1;30m--------------------------------------------------\033[0m"; }
 
-# 必填环境变量
+# Required environment variables
 PUBLISH_DIR="${PUBLISH_DIR:?PUBLISH_DIR is required}"
 GITHUB_TOKEN="${GITHUB_TOKEN:?GITHUB_TOKEN is required}"
 
-# 可选参数及默认值
+# Optional variables with defaults
 TARGET_BRANCH="${TARGET_BRANCH:-gh-pages}"
-
 
 CURRENT_HASH=$(git rev-parse HEAD 2>/dev/null || date +'%Y%m%d%H%M%S%3N')
 COMMIT_MESSAGE="${COMMIT_MESSAGE:-"deploy commit: ${CURRENT_HASH}"}"
 CNAME="${CNAME:-}"
 
-# 支持外部覆盖 REPOSITORY，否则用 GITHUB_REPOSITORY
+# Allow overriding REPOSITORY, fallback to GITHUB_REPOSITORY
 REPOSITORY="${REPOSITORY:-$GITHUB_REPOSITORY}"
 
-# 支持外部覆盖 ORIGIN_URL，否则拼接
+# Allow overriding ORIGIN_URL, fallback to token URL
 ORIGIN_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${REPOSITORY}.git"
 
-step "远程仓库地址：${REPOSITORY}"
-step "进入发布目录：${PUBLISH_DIR}"
+step "Remote repository: ${REPOSITORY}"
+step "Entering publish directory: ${PUBLISH_DIR}"
 cd "$PUBLISH_DIR"
 
-step "初始化 git 仓库"
+step "Initializing git repository"
 git init
 
 if [[ -n "$CNAME" ]]; then
-  step "写入 CNAME 文件：$CNAME"
+  step "Writing CNAME file: $CNAME"
   echo "$CNAME" > CNAME
 fi
 
-step "配置 git 用户信息"
+step "Setting git user config"
 git config user.name "github-actions[bot]"
 git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-step "添加远程仓库"
+step "Adding remote origin"
 git remote add origin "$ORIGIN_URL"
 
-step "切换或新建分支：$TARGET_BRANCH"
+step "Checking out or creating branch: $TARGET_BRANCH"
 git checkout -b "$TARGET_BRANCH" || git checkout "$TARGET_BRANCH"
 
-step "添加所有文件"
+step "Staging all files"
 git add -A
 
-step "提交更改"
+step "Committing changes"
 if git commit -m "$COMMIT_MESSAGE"; then
-  success "提交成功"
+  success "Commit successful"
 else
-  warning "没有检测到文件更改，跳过提交"
+  warning "No changes detected, skipping commit"
 fi
 
-step "推送分支 $TARGET_BRANCH"
+step "Pushing to branch $TARGET_BRANCH"
 git push -u origin "$TARGET_BRANCH" --force
 
-success "发布完成！"
+success "Deployment complete!"
